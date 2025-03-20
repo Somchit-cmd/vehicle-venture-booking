@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import Layout from '@/components/layout/Layout';
@@ -9,8 +8,22 @@ import { Separator } from '@/components/ui/separator';
 import { toast } from 'sonner';
 import { motion } from 'framer-motion';
 
+// Define the vehicle type with proper status type
+type VehicleStatus = "available" | "booked" | "maintenance";
+
+type Vehicle = {
+  id: string;
+  name: string;
+  model: string;
+  image: string;
+  seats: number;
+  fuelType: string;
+  status: VehicleStatus;
+  licensePlate: string;
+};
+
 // Mock vehicle data (replace with actual API call)
-const mockVehicles = [
+const mockVehicles: Vehicle[] = [
   {
     id: '1',
     name: 'Tesla',
@@ -18,7 +31,7 @@ const mockVehicles = [
     image: 'https://images.unsplash.com/photo-1617704548623-340376564e68?q=80&w=2940&auto=format&fit=crop&ixlib=rb-4.0.3',
     seats: 5,
     fuelType: 'Electric',
-    status: 'available',
+    status: "available",
     licensePlate: 'EV-123456',
   },
   {
@@ -28,7 +41,7 @@ const mockVehicles = [
     image: 'https://images.unsplash.com/photo-1621007947382-bb3c3994e3fb?q=80&w=2787&auto=format&fit=crop&ixlib=rb-4.0.3',
     seats: 5,
     fuelType: 'Hybrid',
-    status: 'booked',
+    status: "booked",
     licensePlate: 'HY-789012',
   },
   {
@@ -38,7 +51,7 @@ const mockVehicles = [
     image: 'https://images.unsplash.com/photo-1552519507-da3b142c6e3d?q=80&w=2940&auto=format&fit=crop&ixlib=rb-4.0.3',
     seats: 7,
     fuelType: 'Diesel',
-    status: 'available',
+    status: "available",
     licensePlate: 'BM-345678',
   },
   {
@@ -48,7 +61,7 @@ const mockVehicles = [
     image: 'https://images.unsplash.com/photo-1604659238904-21e563526090?q=80&w=2874&auto=format&fit=crop&ixlib=rb-4.0.3',
     seats: 9,
     fuelType: 'Diesel',
-    status: 'maintenance',
+    status: "maintenance",
     licensePlate: 'FT-901234',
   },
   {
@@ -58,7 +71,7 @@ const mockVehicles = [
     image: 'https://images.unsplash.com/photo-1603584173870-7f23fdae1b7a?q=80&w=2940&auto=format&fit=crop&ixlib=rb-4.0.3',
     seats: 5,
     fuelType: 'Petrol',
-    status: 'available',
+    status: "available",
     licensePlate: 'AU-567890',
   },
   {
@@ -68,7 +81,7 @@ const mockVehicles = [
     image: 'https://images.unsplash.com/photo-1616455579100-2ceaa4eb2d37?q=80&w=2940&auto=format&fit=crop&ixlib=rb-4.0.3',
     seats: 5,
     fuelType: 'Diesel',
-    status: 'available',
+    status: "available",
     licensePlate: 'MB-123789',
   }
 ];
