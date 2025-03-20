@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import Layout from '@/components/layout/Layout';
@@ -10,12 +9,6 @@ import { toast } from 'sonner';
 import { motion } from 'framer-motion';
 import { getVehicleById } from '@/services/vehicleService';
 import { createBooking } from '@/services/bookingService';
-
-// Need to create this new function in vehicleService.ts
-const getVehicleById = async (id: string) => {
-  const vehicles = await getVehicles();
-  return vehicles.find(v => v.id === id) || null;
-};
 
 const Booking = () => {
   const { id } = useParams<{ id: string }>();
@@ -64,16 +57,15 @@ const Booking = () => {
     setIsSubmitting(true);
     
     try {
-      // Create booking in Firestore
       const bookingData = {
         vehicleId: vehicle.id,
         vehicleName: `${vehicle.name} ${vehicle.model}`,
         startDate: data.startDate,
-        endDate: data.endDate || data.startDate, // Use startDate if endDate is not provided
+        endDate: data.endDate || data.startDate,
         startTime: data.startTime,
         endTime: data.endTime,
         purpose: data.purpose,
-        bookedBy: "Current User", // Replace with actual user info when auth is implemented
+        bookedBy: "Current User",
         status: "active" as const,
         passengers: data.passengers,
         notes: data.notes

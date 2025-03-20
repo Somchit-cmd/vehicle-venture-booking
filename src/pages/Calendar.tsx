@@ -10,6 +10,7 @@ import { getVehicles } from '@/services/vehicleService';
 import { toast } from 'sonner';
 import { Booking } from '@/services/bookingService';
 import { Vehicle } from '@/services/vehicleService';
+import { Timestamp } from 'firebase/firestore';
 
 const CalendarPage = () => {
   const [date, setDate] = useState<Date | undefined>(new Date());
@@ -43,9 +44,12 @@ const CalendarPage = () => {
   const filteredBookings = bookings.filter(booking => {
     if (!date) return false;
     
+    // Handle both Date and Timestamp types
     const bookingDate = booking.startDate instanceof Date 
       ? booking.startDate 
-      : new Date(booking.startDate);
+      : booking.startDate instanceof Timestamp 
+        ? booking.startDate.toDate() 
+        : new Date(booking.startDate);
       
     const selectedDate = new Date(date);
     return bookingDate.toDateString() === selectedDate.toDateString();

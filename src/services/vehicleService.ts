@@ -1,5 +1,5 @@
 
-import { collection, doc, getDocs, addDoc, updateDoc, deleteDoc, query, where } from 'firebase/firestore';
+import { collection, doc, getDocs, addDoc, updateDoc, deleteDoc, query, where, getDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 
 export type VehicleStatus = "available" | "booked" | "maintenance";
@@ -26,6 +26,26 @@ export const getVehicles = async (): Promise<Vehicle[]> => {
   })) as Vehicle[];
   
   return vehicleList;
+};
+
+// Get vehicle by ID
+export const getVehicleById = async (id: string): Promise<Vehicle | null> => {
+  try {
+    const vehicleRef = doc(db, 'vehicles', id);
+    const vehicleSnap = await getDoc(vehicleRef);
+    
+    if (!vehicleSnap.exists()) {
+      return null;
+    }
+    
+    return {
+      id: vehicleSnap.id,
+      ...vehicleSnap.data()
+    } as Vehicle;
+  } catch (error) {
+    console.error("Error getting vehicle by ID:", error);
+    return null;
+  }
 };
 
 // Get vehicles by status
