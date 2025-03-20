@@ -2,27 +2,11 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { 
-  Car, 
-  Calendar, 
-  ClipboardList, 
-  UserCircle, 
-  Menu,
-  X 
-} from 'lucide-react';
-import { useIsMobile } from '@/hooks/use-mobile';
-import { 
-  Drawer, 
-  DrawerContent, 
-  DrawerTrigger,
-  DrawerClose
-} from '@/components/ui/drawer';
+import { Car, Calendar, ClipboardList, UserCircle } from 'lucide-react';
 
 const Navbar = () => {
   const location = useLocation();
   const [scrolled, setScrolled] = useState(false);
-  const isMobile = useIsMobile();
-  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
   // Handle scroll effect
   useEffect(() => {
@@ -62,7 +46,6 @@ const Navbar = () => {
             </Link>
           </div>
           
-          {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center space-x-1">
             {navLinks.map((link) => (
               <Link key={link.path} to={link.path}>
@@ -82,63 +65,7 @@ const Navbar = () => {
           </nav>
           
           <div className="flex items-center">
-            {/* Mobile Menu Button */}
-            {isMobile && (
-              <Drawer open={isDrawerOpen} onOpenChange={setIsDrawerOpen}>
-                <DrawerTrigger asChild>
-                  <Button variant="ghost" size="icon">
-                    <Menu className="h-5 w-5" />
-                    <span className="sr-only">Open menu</span>
-                  </Button>
-                </DrawerTrigger>
-                <DrawerContent className="h-[80vh]">
-                  <div className="flex flex-col p-4 h-full">
-                    <div className="flex items-center justify-between mb-6">
-                      <div className="flex items-center">
-                        <span className="text-primary font-semibold text-xl">Vehicle</span>
-                        <span className="text-foreground font-semibold text-xl">Booking</span>
-                      </div>
-                      <DrawerClose asChild>
-                        <Button variant="ghost" size="icon" className="rounded-full">
-                          <X className="h-4 w-4" />
-                          <span className="sr-only">Close menu</span>
-                        </Button>
-                      </DrawerClose>
-                    </div>
-                    <nav className="flex flex-col space-y-3">
-                      {navLinks.map((link) => (
-                        <Link 
-                          key={link.path} 
-                          to={link.path}
-                          onClick={() => setIsDrawerOpen(false)}
-                        >
-                          <Button 
-                            variant={location.pathname === link.path ? "default" : "ghost"} 
-                            className={`w-full justify-start text-lg py-6 ${
-                              location.pathname === link.path 
-                                ? 'bg-primary text-primary-foreground'
-                                : 'hover:bg-secondary'
-                            }`}
-                          >
-                            {React.cloneElement(link.icon, { className: "h-5 w-5 mr-3" })}
-                            {link.name}
-                          </Button>
-                        </Link>
-                      ))}
-                    </nav>
-                    <div className="mt-auto">
-                      <Button variant="outline" className="w-full justify-start" size="lg">
-                        <UserCircle className="h-5 w-5 mr-3" />
-                        <span>Sign In</span>
-                      </Button>
-                    </div>
-                  </div>
-                </DrawerContent>
-              </Drawer>
-            )}
-            
-            {/* Desktop Sign In Button */}
-            <Button variant="ghost" className="hidden md:flex items-center">
+            <Button variant="ghost" className="flex items-center">
               <UserCircle className="h-5 w-5 mr-2" />
               <span className="hidden sm:inline">Sign In</span>
             </Button>

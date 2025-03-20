@@ -7,94 +7,121 @@ import { ArrowLeft, Car, Fuel, Users, CalendarDays } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import { toast } from 'sonner';
 import { motion } from 'framer-motion';
-import { getVehicleById } from '@/services/vehicleService';
-import { createBooking } from '@/services/bookingService';
+
+// Define the vehicle type with proper status type
+type VehicleStatus = "available" | "booked" | "maintenance";
+
+type Vehicle = {
+  id: string;
+  name: string;
+  model: string;
+  image: string;
+  seats: number;
+  fuelType: string;
+  status: VehicleStatus;
+  licensePlate: string;
+};
+
+// Mock vehicle data (replace with actual API call)
+const mockVehicles: Vehicle[] = [
+  {
+    id: '1',
+    name: 'Tesla',
+    model: 'Model S',
+    image: 'https://images.unsplash.com/photo-1617704548623-340376564e68?q=80&w=2940&auto=format&fit=crop&ixlib=rb-4.0.3',
+    seats: 5,
+    fuelType: 'Electric',
+    status: "available",
+    licensePlate: 'EV-123456',
+  },
+  {
+    id: '2',
+    name: 'Toyota',
+    model: 'Camry',
+    image: 'https://images.unsplash.com/photo-1621007947382-bb3c3994e3fb?q=80&w=2787&auto=format&fit=crop&ixlib=rb-4.0.3',
+    seats: 5,
+    fuelType: 'Hybrid',
+    status: "booked",
+    licensePlate: 'HY-789012',
+  },
+  {
+    id: '3',
+    name: 'BMW',
+    model: 'X5',
+    image: 'https://images.unsplash.com/photo-1552519507-da3b142c6e3d?q=80&w=2940&auto=format&fit=crop&ixlib=rb-4.0.3',
+    seats: 7,
+    fuelType: 'Diesel',
+    status: "available",
+    licensePlate: 'BM-345678',
+  },
+  {
+    id: '4',
+    name: 'Ford',
+    model: 'Transit',
+    image: 'https://images.unsplash.com/photo-1604659238904-21e563526090?q=80&w=2874&auto=format&fit=crop&ixlib=rb-4.0.3',
+    seats: 9,
+    fuelType: 'Diesel',
+    status: "maintenance",
+    licensePlate: 'FT-901234',
+  },
+  {
+    id: '5',
+    name: 'Audi',
+    model: 'A4',
+    image: 'https://images.unsplash.com/photo-1603584173870-7f23fdae1b7a?q=80&w=2940&auto=format&fit=crop&ixlib=rb-4.0.3',
+    seats: 5,
+    fuelType: 'Petrol',
+    status: "available",
+    licensePlate: 'AU-567890',
+  },
+  {
+    id: '6',
+    name: 'Mercedes',
+    model: 'E-Class',
+    image: 'https://images.unsplash.com/photo-1616455579100-2ceaa4eb2d37?q=80&w=2940&auto=format&fit=crop&ixlib=rb-4.0.3',
+    seats: 5,
+    fuelType: 'Diesel',
+    status: "available",
+    licensePlate: 'MB-123789',
+  }
+];
 
 const Booking = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [vehicle, setVehicle] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
+    // Simulate API call to get vehicle details
     const fetchVehicle = async () => {
-      setIsLoading(true);
+      // In a real app, you would fetch from an API
+      const foundVehicle = mockVehicles.find(v => v.id === id);
       
-      try {
-        if (!id) {
-          toast.error("Vehicle ID is required");
-          navigate('/');
-          return;
-        }
-        
-        const vehicleData = await getVehicleById(id);
-        
-        if (vehicleData) {
-          setVehicle(vehicleData);
-        } else {
-          toast.error("Vehicle not found");
-          navigate('/');
-        }
-      } catch (error) {
-        console.error("Error fetching vehicle:", error);
-        toast.error("Failed to load vehicle details");
+      if (foundVehicle) {
+        setVehicle(foundVehicle);
+      } else {
+        toast.error("Vehicle not found");
         navigate('/');
-      } finally {
-        setIsLoading(false);
       }
     };
 
     fetchVehicle();
   }, [id, navigate]);
 
-  const handleBookingSubmit = async (data: any) => {
-    if (!vehicle || !vehicle.id) {
-      toast.error("Vehicle information is missing");
-      return;
-    }
+  const handleBookingSubmit = (data: any) => {
+    setIsLoading(true);
     
-    setIsSubmitting(true);
-    
-    try {
-      const bookingData = {
-        vehicleId: vehicle.id,
-        vehicleName: `${vehicle.name} ${vehicle.model}`,
-        startDate: data.startDate,
-        endDate: data.endDate || data.startDate,
-        startTime: data.startTime,
-        endTime: data.endTime,
-        purpose: data.purpose,
-        bookedBy: "Current User",
-        status: "active" as const,
-        passengers: data.passengers,
-        notes: data.notes
-      };
+    // Simulate API call to create booking
+    setTimeout(() => {
+      console.log('Booking data:', data);
+      setIsLoading(false);
       
-      await createBooking(bookingData);
-      
+      // In a real app, you would create a booking in Firebase
       toast.success("Vehicle booked successfully!");
       navigate('/calendar');
-    } catch (error) {
-      console.error("Error creating booking:", error);
-      toast.error("Failed to create booking");
-    } finally {
-      setIsSubmitting(false);
-    }
+    }, 1500);
   };
-
-  if (isLoading) {
-    return (
-      <Layout>
-        <div className="flex items-center justify-center h-[60vh]">
-          <div className="text-center">
-            <CalendarDays className="h-12 w-12 mx-auto text-muted-foreground opacity-20 mb-4" />
-            <h2 className="text-xl font-medium">Loading vehicle information...</h2>
-          </div>
-        </div>
-      </Layout>
-    );
-  }
 
   if (!vehicle) {
     return (
@@ -102,14 +129,7 @@ const Booking = () => {
         <div className="flex items-center justify-center h-[60vh]">
           <div className="text-center">
             <CalendarDays className="h-12 w-12 mx-auto text-muted-foreground opacity-20 mb-4" />
-            <h2 className="text-xl font-medium">Vehicle not found</h2>
-            <Button 
-              variant="outline" 
-              onClick={() => navigate('/')}
-              className="mt-4"
-            >
-              Return to Home
-            </Button>
+            <h2 className="text-xl font-medium">Loading vehicle information...</h2>
           </div>
         </div>
       </Layout>
@@ -184,7 +204,7 @@ const Booking = () => {
             vehicleId={vehicle.id}
             vehicleName={`${vehicle.name} ${vehicle.model}`}
             onSubmit={handleBookingSubmit}
-            isLoading={isSubmitting}
+            isLoading={isLoading}
           />
         </motion.div>
       </div>
