@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -46,6 +46,16 @@ const bookingFormSchema = z.object({
   purpose: z.string().min(5, "Purpose must be at least 5 characters"),
   passengers: z.string().optional(),
   notes: z.string().optional(),
+}).refine((data) => {
+  // If dates are the same, ensure end time is after start time
+  if (data.endDate && data.startDate && 
+      data.endDate.toDateString() === data.startDate.toDateString()) {
+    return data.endTime > data.startTime;
+  }
+  return true;
+}, {
+  message: "Return time must be after start time on the same day",
+  path: ["endTime"]
 });
 
 type BookingFormValues = z.infer<typeof bookingFormSchema>;
@@ -83,6 +93,37 @@ const BookingForm: React.FC<BookingFormProps> = ({
     const minute = (i % 4) * 15;
     return `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
   });
+
+  // Get values from form to use for validation
+  const startDate = form.watch('startDate');
+  const endDate = form.watch('endDate');
+  const startTime = form.watch('startTime');
+
+  // Filter endTime options based on startTime when dates are the same
+  const filteredEndTimeOptions = timeOptions.filter(time => {
+    if (endDate && startDate && endDate.toDateString() === startDate.toDateString()) {
+      return time > startTime;
+    }
+    return true;
+  });
+
+  // Update endTime if it's before startTime on same day
+  useEffect(() => {
+    const currentEndTime = form.getValues('endTime');
+    const currentStartTime = form.getValues('startTime');
+    const currentEndDate = form.getValues('endDate');
+    const currentStartDate = form.getValues('startDate');
+    
+    if (currentEndDate && currentStartDate && 
+        currentEndDate.toDateString() === currentStartDate.toDateString() &&
+        currentEndTime <= currentStartTime) {
+      // Find the next available time after startTime
+      const nextTime = timeOptions.find(time => time > currentStartTime);
+      if (nextTime) {
+        form.setValue('endTime', nextTime);
+      }
+    }
+  }, [startTime, startDate, endDate, form, timeOptions]);
 
   // Handle form submission
   const handleSubmit = (data: BookingFormValues) => {
@@ -231,7 +272,7 @@ const BookingForm: React.FC<BookingFormProps> = ({
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent className="max-h-[200px]">
-                          {timeOptions.map((time) => (
+                          {filteredEndTimeOptions.map((time) => (
                             <SelectItem key={`end-${time}`} value={time}>
                               {time}
                             </SelectItem>
