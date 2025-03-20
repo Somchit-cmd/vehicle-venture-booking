@@ -1,6 +1,5 @@
 
-import { collection, doc, getDocs, getDoc, addDoc, updateDoc, deleteDoc, query, where, Timestamp } from 'firebase/firestore';
-import { db } from '@/lib/firebase';
+import { getItem, setItem, generateId } from '@/lib/localStorage';
 import { updateVehicleStatus } from './vehicleService';
 
 export type BookingStatus = "active" | "completed" | "cancelled";
@@ -9,84 +8,60 @@ export type Booking = {
   id?: string;
   vehicleId: string;
   vehicleName: string;
-  startDate: Date | Timestamp;
-  endDate: Date | Timestamp;
+  startDate: Date;
+  endDate: Date;
   startTime: string;
   endTime: string;
   purpose: string;
   bookedBy: string;
   status: BookingStatus;
-  createdAt?: Date | Timestamp;
+  createdAt?: Date;
 };
 
-const bookingsCollection = collection(db, 'bookings');
+const STORAGE_KEY = 'bookings';
+
+// Helper to convert date strings back to Date objects when retrieving from localStorage
+const processBookingDates = (booking: any): Booking => {
+  return {
+    ...booking,
+    startDate: booking.startDate ? new Date(booking.startDate) : new Date(),
+    endDate: booking.endDate ? new Date(booking.endDate) : new Date(),
+    createdAt: booking.createdAt ? new Date(booking.createdAt) : new Date()
+  };
+};
 
 // Get all bookings
 export const getBookings = async (): Promise<Booking[]> => {
-  const bookingSnapshot = await getDocs(bookingsCollection);
-  return bookingSnapshot.docs.map(doc => {
-    const data = doc.data();
-    return {
-      id: doc.id,
-      ...data,
-      startDate: data.startDate instanceof Timestamp ? data.startDate.toDate() : data.startDate,
-      endDate: data.endDate instanceof Timestamp ? data.endDate.toDate() : data.endDate,
-      createdAt: data.createdAt instanceof Timestamp ? data.createdAt.toDate() : data.createdAt,
-    } as Booking;
-  });
+  const bookings = getItem<any[]>(STORAGE_KEY, []);
+  return bookings.map(processBookingDates);
 };
 
 // Get booking by ID
 export const getBookingById = async (id: string): Promise<Booking | null> => {
-  const bookingRef = doc(db, 'bookings', id);
-  const bookingSnap = await getDoc(bookingRef);
+  const bookings = getItem<any[]>(STORAGE_KEY, []);
+  const booking = bookings.find(b => b.id === id);
   
-  if (!bookingSnap.exists()) {
+  if (!booking) {
     return null;
   }
   
-  const data = bookingSnap.data();
-  return {
-    id: bookingSnap.id,
-    ...data,
-    startDate: data.startDate instanceof Timestamp ? data.startDate.toDate() : data.startDate,
-    endDate: data.endDate instanceof Timestamp ? data.endDate.toDate() : data.endDate,
-    createdAt: data.createdAt instanceof Timestamp ? data.createdAt.toDate() : data.createdAt,
-  } as Booking;
+  return processBookingDates(booking);
 };
 
 // Get bookings by vehicle ID
 export const getBookingsByVehicle = async (vehicleId: string): Promise<Booking[]> => {
-  const bookingQuery = query(bookingsCollection, where("vehicleId", "==", vehicleId));
-  const bookingSnapshot = await getDocs(bookingQuery);
+  const bookings = getItem<any[]>(STORAGE_KEY, []);
+  const filteredBookings = bookings.filter(b => b.vehicleId === vehicleId);
   
-  return bookingSnapshot.docs.map(doc => {
-    const data = doc.data();
-    return {
-      id: doc.id,
-      ...data,
-      startDate: data.startDate instanceof Timestamp ? data.startDate.toDate() : data.startDate,
-      endDate: data.endDate instanceof Timestamp ? data.endDate.toDate() : data.endDate,
-      createdAt: data.createdAt instanceof Timestamp ? data.createdAt.toDate() : data.createdAt,
-    } as Booking;
-  });
+  return filteredBookings.map(processBookingDates);
 };
 
 // Get bookings by status
 export const getBookingsByStatus = async (status: BookingStatus): Promise<Booking[]> => {
-  const bookingQuery = query(bookingsCollection, where("status", "==", status));
-  const bookingSnapshot = await getDocs(bookingQuery);
+  const bookings = getItem<any[]>(STORAGE_KEY, []);
+  const filteredBookings = bookings.filter(b => b.status === status);
   
-  return bookingSnapshot.docs.map(doc => {
-    const data = doc.data();
-    return {
-      id: doc.id,
-      ...data,
-      startDate: data.startDate instanceof Timestamp ? data.startDate.toDate() : data.startDate,
-      endDate: data.endDate instanceof Timestamp ? data.endDate.toDate() : data.endDate,
-      createdAt: data.createdAt instanceof Timestamp ? data.createdAt.toDate() : data.createdAt,
-    } as Booking;
-  });
+  return filteredBookings.map(processBookingDates);
 };
 
 // Create booking
@@ -94,20 +69,31 @@ export const createBooking = async (booking: Omit<Booking, 'id'>): Promise<strin
   // Set vehicle status to booked
   await updateVehicleStatus(booking.vehicleId, "booked");
   
+  const bookings = getItem<any[]>(STORAGE_KEY, []);
+  const id = generateId();
+  
   // Add timestamp
-  const bookingWithTimestamp = {
+  const newBooking = {
     ...booking,
+    id,
     createdAt: new Date()
   };
   
-  const docRef = await addDoc(bookingsCollection, bookingWithTimestamp);
-  return docRef.id;
+  bookings.push(newBooking);
+  setItem(STORAGE_KEY, bookings);
+  
+  return id;
 };
 
 // Update booking
-export const updateBooking = async (id: string, booking: Partial<Booking>): Promise<void> => {
-  const bookingRef = doc(db, 'bookings', id);
-  await updateDoc(bookingRef, booking);
+export const updateBooking = async (id: string, updatedFields: Partial<Booking>): Promise<void> => {
+  const bookings = getItem<any[]>(STORAGE_KEY, []);
+  const index = bookings.findIndex(b => b.id === id);
+  
+  if (index !== -1) {
+    bookings[index] = { ...bookings[index], ...updatedFields };
+    setItem(STORAGE_KEY, bookings);
+  }
 };
 
 // Cancel booking
@@ -115,8 +101,7 @@ export const cancelBooking = async (id: string): Promise<void> => {
   const booking = await getBookingById(id);
   if (booking) {
     // Update booking status
-    const bookingRef = doc(db, 'bookings', id);
-    await updateDoc(bookingRef, { status: "cancelled" });
+    await updateBooking(id, { status: "cancelled" });
     
     // Set vehicle status back to available
     await updateVehicleStatus(booking.vehicleId, "available");
@@ -128,8 +113,7 @@ export const completeBooking = async (id: string): Promise<void> => {
   const booking = await getBookingById(id);
   if (booking) {
     // Update booking status
-    const bookingRef = doc(db, 'bookings', id);
-    await updateDoc(bookingRef, { status: "completed" });
+    await updateBooking(id, { status: "completed" });
     
     // Set vehicle status back to available
     await updateVehicleStatus(booking.vehicleId, "available");
