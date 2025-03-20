@@ -43,7 +43,7 @@ const mockVehicles = [
     id: '4',
     name: 'Ford',
     model: 'Transit',
-    image: 'https://images.unsplash.com/photo-1604659238904-21e563526090?q=80&w=2874&auto=format&fit=crop&ixlib=rb-4.0.3',
+    image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/b/be/2016_Ford_Transit_Connect_240_1.5.jpg/640px-2016_Ford_Transit_Connect_240_1.5.jpg',
     seats: 9,
     fuelType: 'Diesel',
     status: 'maintenance',
