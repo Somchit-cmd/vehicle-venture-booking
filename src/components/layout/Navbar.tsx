@@ -41,8 +41,8 @@ const Navbar = () => {
         <div className="flex items-center justify-between h-16">
           <div className="flex items-center">
             <Link to="/" className="flex items-center">
-              
-              <img src="https://i.ibb.co/r26f5Dc8/logo-png.png" className="h-12 w-auto mr-4" alt="MSIGSX Logo" />
+              <span className="text-primary font-semibold text-xl">Vehicle</span>
+              <span className="text-foreground font-semibold text-xl">Booking</span>
             </Link>
           </div>
           
