@@ -42,7 +42,7 @@ const Navbar = () => {
           <div className="flex items-center">
             <Link to="/" className="flex items-center">
               
-              <img src="/src/assets/logo_png_1.png" className="h-12 w-auto mr-4" alt="MSIGSX Logo" />
+              <img src="https://i.ibb.co/r26f5Dc8/logo-png.png" className="h-12 w-auto mr-4" alt="MSIGSX Logo" />
             </Link>
           </div>
           
